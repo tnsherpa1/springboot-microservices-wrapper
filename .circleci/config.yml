@@ -1,129 +1,66 @@
-# Java Gradle CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-java/ for more details
-#
 version: 2
 jobs:
-  users-api-test:
+  users-api-tests:
     machine:
       services:
         - docker
-
-      # Specify service dependencies here if necessary
-      # CircleCI maintains a library of pre-built images
-      # documented at https://circleci.com/docs/2.0/circleci-images/
-      # - image: circleci/postgres:9.4
-
     working_directory: ~/repo
-
-    environment:
-      # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx3200m
-      TERM: dumb
-
     steps:
       - checkout
-
       # Download and cache dependencies
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "build.gradle" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
-
       - run:
           name: Install Docker Compose
           command: |
                 curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
                 chmod +x ~/docker-compose
                 sudo mv ~/docker-compose /usr/local/bin/docker-compose
-
       - save_cache:
           paths:
             - ~/cache
           key: v1-dependencies-{{ checksum "build.gradle" }}
-
       # run tests!
       - run:
           name: Run Tests
           command: |
               cd users-api
               ./gradlew test
-
-      - run:
-             name: Save Test Results HTML
-             command: |
-               mkdir -p ~/test-results/
-               cp -r build/reports/tests/test/ ~/test-results/
-             when: always
-
-      - store_test_results:
-           path: ~/test-results
-
-      - store_artifacts:
-           path: ~/test-results
-  end-to-end-test:
-      requires:
-        - users-api-test
+  feature-tests:
       machine:
         services:
           - docker
-
-        # Specify service dependencies here if necessary
-        # CircleCI maintains a library of pre-built images
-        # documented at https://circleci.com/docs/2.0/circleci-images/
-        # - image: circleci/postgres:9.4
-
       working_directory: ~/repo
-
-      environment:
-        # Customize the JVM maximum heap limit
-        JVM_OPTS: -Xmx3200m
-        TERM: dumb
-
       steps:
         - checkout
-
         # Download and cache dependencies
         - restore_cache:
             keys:
             - v1-dependencies-{{ checksum "build.gradle" }}
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
-
         - run:
             name: Install Docker Compose
             command: |
                   curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
                   chmod +x ~/docker-compose
                   sudo mv ~/docker-compose /usr/local/bin/docker-compose
-
         - save_cache:
             paths:
               - ~/cache
             key: v1-dependencies-{{ checksum "build.gradle" }}
-
         # run tests!
         - run:
             name: Run Tests
             command: ./gradlew test
-
-        - run:
-               name: Save Test Results HTML
-               command: |
-                 mkdir -p ~/test-results/
-                 cp -r build/reports/tests/test/ ~/test-results/
-               when: always
-
-        - store_test_results:
-             path: ~/test-results
-
-        - store_artifacts:
-             path: ~/test-results
-
 workflows:
   version: 2
-  test:
+  all-tests:
     jobs:
-      - users-api-test
-      - end-to-end-test
+      - users-api-tests
+      - feature-tests:
+          requires:
+            - users-api-tests

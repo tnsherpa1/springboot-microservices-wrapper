@@ -48,12 +48,24 @@ task waitForAPIs(type: Exec) {
     commandLine './wait-for-users-api.sh','http://localhost:8080/users'
 }
 
+test {
+    dependsOn cleanTest
+    dependsOn waitForAPIs
+
+    testLogging {
+        exceptionFormat "full"
+        events "skipped", "passed", "failed"
+        displayGranularity 2
+    }
+}
+
+
 task runUsersAPITests(type: Exec) {
     workingDir './users-api'
     commandLine './gradlew', 'test'
 }
 
-test {
+task allTests(type: Test) {
     dependsOn cleanTest
     dependsOn waitForAPIs
     dependsOn runUsersAPITests
@@ -69,3 +81,4 @@ dockerCompose {
     useComposeFiles = ['docker-compose.test.yml']
 }
 dockerCompose.isRequiredBy(test)
+dockerCompose.isRequiredBy(allTests)
