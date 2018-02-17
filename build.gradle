@@ -4,15 +4,18 @@ buildscript {
     }
     repositories {
         mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath "com.avast.gradle:gradle-docker-compose-plugin:0.6.17"
     }
 }
 
 apply plugin: 'java'
-apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
+apply plugin: 'docker-compose'
+
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
@@ -41,20 +44,28 @@ dependencies {
     runtime 'org.springframework.boot:spring-boot-devtools'
 }
 
+task waitForAPIs(type: Exec) {
+    commandLine './wait-for-users-api.sh','http://localhost:8080/users'
+}
+
+task runUsersAPITests(type: Exec) {
+    workingDir './users-api'
+    commandLine './gradlew', 'test'
+}
+
 test {
+    dependsOn cleanTest
+    dependsOn waitForAPIs
+    dependsOn runUsersAPITests
+
     testLogging {
-        // set options for log level LIFECYCLE
-        events "failed"
         exceptionFormat "full"
-
-        // set options for log level DEBUG
-        debug {
-            events "started", "skipped", "failed"
-            exceptionFormat "full"
-        }
-
-        // remove standard output/error logging from --info builds
-        // by assigning only 'failed' and 'skipped' events
-        info.events = ["failed", "skipped"]
+        events "skipped", "passed", "failed"
+        displayGranularity 2
     }
 }
+
+dockerCompose {
+    useComposeFiles = ['docker-compose.test.yml']
+}
+dockerCompose.isRequiredBy(test)
