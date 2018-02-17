@@ -3,11 +3,27 @@
 # spring-boot-microservices-wrapper
 
 ## All Services
-- **Start all services:** `docker-compose -f docker-compose.test.yml up`
-- **Run all tests:** `./gradlew allTests`
-- **Run feature tests only:** `./gradlew test`
+- **Start all services:** 
+
+```bash
+$ docker-compose -f docker-compose.test.yml up
+```
+- **Run all tests:** 
+```bash
+$ ./gradlew allTests
+```
+- **Run feature tests only:** 
+```bash
+$ ./gradlew test
+```
 
 ## Users API
-- **Start API and dependencies:** `docker-compose -f docker-compose.test.yml up users-api`
-- **Test API:** `cd users-api && ./gradlew test`
+- **Start API and dependencies:** 
+```bash
+$ docker-compose -f docker-compose.test.yml up users-api
+```
+- **Test API:** 
+```bash
+$ cd users-api && ./gradlew test
+```
 
