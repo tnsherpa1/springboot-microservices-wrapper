@@ -45,12 +45,6 @@ dependencies {
     runtime 'org.springframework.boot:spring-boot-devtools'
 }
 
-dockerCompose {
-    useComposeFiles = ['docker-compose.test.yml']
-}
-
-dockerCompose.isRequiredBy(test)
-
 test {
     dependsOn 'cleanTest'
 
@@ -59,5 +53,9 @@ test {
         events "skipped", "passed", "failed"
         displayGranularity 2
     }
-
 }
+
+dockerCompose {
+    useComposeFiles = ['docker-compose.test.yml']
+}
+dockerCompose.isRequiredBy(test)
